@@ -5,7 +5,7 @@ name: luxus-connect
 services:
   postgres:
     container_name: postgres.connect.luxus
-    image: luxus/postgres.connect.luxus:latest
+    image: ${REGISTRY:-luxus/connect-postgres}:${PLATFORM:-linux}-${TAG:-latest}
     build:
       context: ../../..
       dockerfile: ./infra/docker/develop/database/Dockerfile
@@ -47,7 +47,7 @@ services:
 
   keycloak:
     container_name: keycloak.connect.luxus
-    image: luxus/keycloak.connect.luxus:latest
+    image: ${REGISTRY:-luxus/connect-keycloak}:${PLATFORM:-linux}-${TAG:-latest}
     user: root
     build:
       context: ../../..
@@ -66,17 +66,19 @@ services:
       - "8443:8443"
 
   connect-api:
-    image: ${REGISTRY:-luxus/connect/api}:${PLATFORM:-linux}-${TAG:-latest}
+    image: ${REGISTRY:-luxus/connect-api}:${PLATFORM:-linux}-${TAG:-latest}
     container_name: api.connect.luxus
     restart: always
     build:
       context: ../../../api
       dockerfile: Dockerfile
+    env_file:
+      - ./backend/.backend.env
     ports:
       - '8002:80'
 
   connect-web:
-    image: ${WEB_REGISTRY:-luxus/connect/web}:${PLATFORM:-linux}-${TAG:-latest}
+    image: ${WEB_REGISTRY:-luxus/connect-web}:${PLATFORM:-linux}-${TAG:-latest}
     container_name: web.connect.luxus
     restart: always
     build:

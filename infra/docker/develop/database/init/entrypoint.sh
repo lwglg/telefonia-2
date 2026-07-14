@@ -10,7 +10,8 @@ set -o errexit
 # that must be set. This can be consumed later via array
 # variable expansion ${REQUIRED_ENV_VARS[@]}.
 readonly REQUIRED_ENV_VARS=(
-    "DB_NAME"
+    "KC_DB_NAME"
+    "LC_DB_NAME"
     "DB_USERNAME"
     "DB_PASSWORD"
     "POSTGRES_USER"
@@ -55,10 +56,10 @@ create_empty_db() {
     GRANT CREATE ON SCHEMA public TO $DB_USERNAME;
     GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA public TO $DB_USERNAME;
     GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA public TO $DB_USERNAME;
-    SELECT 'CREATE DATABASE "luxus_connect_dev"' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'luxus_connect_dev');\gexec
-    SELECT 'CREATE DATABASE "luxus_kc_dev"' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'luxus_kc_dev');\gexec
-    ALTER DATABASE "luxus_connect_dev" OWNER TO $DB_USERNAME; GRANT ALL PRIVILEGES ON DATABASE "luxus_connect_dev" TO $DB_USERNAME;
-    ALTER DATABASE "luxus_kc_dev" OWNER TO $DB_USERNAME; GRANT ALL PRIVILEGES ON DATABASE "luxus_kc_dev" TO $DB_USERNAME;
+    SELECT 'CREATE DATABASE "$LC_DB_NAME"' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$LC_DB_NAME');\gexec
+    SELECT 'CREATE DATABASE "$KC_DB_NAME"' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = '$KC_DB_NAME');\gexec
+    ALTER DATABASE "$LC_DB_NAME" OWNER TO $DB_USERNAME; GRANT ALL PRIVILEGES ON DATABASE "$LC_DB_NAME" TO $DB_USERNAME;
+    ALTER DATABASE "$KC_DB_NAME" OWNER TO $DB_USERNAME; GRANT ALL PRIVILEGES ON DATABASE "$KC_DB_NAME" TO $DB_USERNAME;
 EOSQL
 }
 
@@ -99,7 +100,7 @@ create_db_structure() {
             
             echo "Applying SQL migration fiie: '$file_name'..."
             echo "--------------------------------------------"
-            psql -v ON_ERROR_STOP=1 -U "$DB_USERNAME" -p $POSTGRES_PORT -d luxus_connect_dev -f $full_path
+            psql -v ON_ERROR_STOP=1 -U "$DB_USERNAME" -p $POSTGRES_PORT -d $LC_DB_NAME -f $full_path
         fi
     done
 }
