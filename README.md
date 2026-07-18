@@ -14,6 +14,10 @@
   </p>
 </p>
 
+## DEMANDAS E RELEASE NOTES
+
+A partir do dia 14/07/2026, as priorizações de demadas e reportes de entregas, sob nova responsabilidade técnica, estão sendo publicados [aqui](./resources/docs/md/release-notes.md).
+
 ## Sobre o sistema
 
 **Luxus.Connect** é o sistema que apoia a **Luxus Gestão**: um intermediário entre **operadoras** e **clientes Luxus**, com foco na entidade **linha** (número de celular). O produto organiza **faturas origem** (`ProviderInvoice`), **importação em lote** (armazenamento S3-compatível + processamento assíncrono via RabbitMQ), **contas na nuvem**, **ciclos de faturamento**, **clientes** e evolução da **composição financeira** por linha, conforme a especificação v2.
