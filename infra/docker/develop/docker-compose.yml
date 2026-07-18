@@ -12,7 +12,7 @@ services:
       args:
         - TZ=America/Sao_Paulo
     env_file:
-      - ./docker/develop/database/.database.env
+      - ./database/.database.env
     volumes:
       - postgres-vol:/var/lib/pgsql/pgdata
       - '/etc/timezone:/etc/timezone:ro'
@@ -20,6 +20,37 @@ services:
     ports:
       - "5001:5001"
     restart: unless-stopped
+    networks:
+      - connect-luxus-default-net-dev
+
+  keycloak:
+    container_name: keycloak.connect.luxus
+    image: ${REGISTRY:-luxus/connect-keycloak}:${PLATFORM:-linux}-${TAG:-latest}
+    user: root
+    build:
+      context: ../../..
+      dockerfile: ./infra/docker/develop/keycloak/Dockerfile
+    command: [
+      "start",
+      "--optimized",
+      "--import-realm",
+      "--spi-theme-static-max-age=-1",
+      "--spi-theme-cache-themes=false",
+      "--spi-theme-cache-templates=false"
+    ]
+    env_file:
+      - ./keycloak/.keycloak.env
+    depends_on:
+      - postgres
+    volumes:
+      - keycloak-data:/opt/keycloak/data
+      - ../../../resources/theme/:/opt/keycloak/themes/
+      - ./keycloak/data/luxus-realm.json:/opt/keycloak/data/import/luxus-realm.json:ro
+    ports:
+      - "8081:8080"
+      - "8443:8443"
+    networks:
+      - connect-luxus-default-net-dev
 
   rabbitmq:
     hostname: 'mabbit'
@@ -44,26 +75,6 @@ services:
       - ./seq/.seq.env
     volumes:
       - seq-data:/var/lib/seq/data/
-
-  keycloak:
-    container_name: keycloak.connect.luxus
-    image: ${REGISTRY:-luxus/connect-keycloak}:${PLATFORM:-linux}-${TAG:-latest}
-    user: root
-    build:
-      context: ../../..
-      dockerfile: ./infra/docker/develop/keycloak/Dockerfile
-    command: [ "start", "--optimized", "--import-realm", "--spi-theme-static-max-age=-1", "--spi-theme-cache-themes=false", "--spi-theme-cache-templates=false" ]
-    env_file:
-      - ./keycloak/.keycloak.env
-    depends_on:
-      - postgres
-    volumes:
-      - keycloak-data:/opt/keycloak/data
-      - ../../../resources/theme/:/opt/keycloak/themes/
-      - ./keycloak/data/luxus-realm.json:/opt/keycloak/data/import/luxus-realm.json:ro
-    ports:
-      - "8081:8080"
-      - "8443:8443"
 
   connect-api:
     image: ${REGISTRY:-luxus/connect-api}:${PLATFORM:-linux}-${TAG:-latest}
@@ -99,6 +110,10 @@ services:
     command: sh -c "npm ci && npm run dev -- --host 0.0.0.0 --port 5173"
     ports:
       - '5173:5173'
+
+networks:
+  connect-luxus-default-net-dev:
+    driver: bridge
 
 volumes:
   postgres-vol:
