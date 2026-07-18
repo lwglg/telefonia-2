@@ -60,7 +60,7 @@ define compose_cmd
 	@$(eval ARGS := $(strip $(2)))
 	@echo "call_compose_cmd @ [ENV($(ENV))] & [ARGS($(ARGS))]"
 	@echo "---------------------------------------------------------------------------------------------"
-	@docker compose -f $(ROOT_DIR)/$(shell ./scripts/docker-compose.sh yamlpath $(ENV)) $(ARGS)
+	@docker compose -f $(ROOT_DIR)/$(shell ./scripts/sh/docker-compose.sh yamlpath $(ENV)) $(ARGS)
 endef
 
 define HEADER
@@ -96,19 +96,7 @@ clean: confirm ## Realiza a limpeza de todos os dados associados aos conteineres
 	$(call compose_cmd, $(env), down)
 
 destroy: confirm ## Remove todas as imagens, volumes, networks e conteineres não utilizados. Use com cautela!
-	@docker container stop $(docker container ls -aq)
-	@docker container rm $(docker container ls -aq)
-	@docker image rm $(docker image ls -aq)
-	@docker system prune --all --force
-	@docker container prune --force
-	@docker image prune --force
-	@docker volume prune --force
-	@docker network prune --force
-
-	@docker container ls -a
-	@docker image ls -a
-	@docker volume ls
-	@docker network ls
+	@./scripts/sh/docker-prune.sh
 
 logs: ## Adiciona captura de logs para todos os conteineres ou para um c=<nome de serviço>, dado um env=<dev | prod> ambiente de infra
 	$(call compose_cmd, $(env), logs --follow $(c))
@@ -141,10 +129,10 @@ exec: ## Executa um comando em um container já iniciado, dado um c=<nome de ser
 ps: status ## Alias do comando 'status'
 
 imganalysisui: ## Executa a análise de uma imagem Docker, em modo UI, dado uma img=<imagem Docker>
-	@./scripts/docker-analysis.sh ui $(img)
+	@./scripts/sh/docker-analysis.sh ui $(img)
 
 imganalysisci: ## Executa a análise de uma imagem Docker, em modo CI, dado uma img=<imagem Docker>
-	@./scripts/docker-analysis.sh ci $(img)
+	@./scripts/sh/docker-analysis.sh ci $(img)
 
 topology: ## Gera um diagrama dos serviços listados no arquivo YML do Docker Compose
-	@./scripts/generate-topology.sh topology $(env)
+	@./scripts/sh/generate-topology.sh topology $(env)
