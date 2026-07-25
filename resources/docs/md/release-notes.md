@@ -11,6 +11,8 @@
     - [Release notes](#release-notes)
         - [Dia 14/07/2026:](#dia-14072026)
         - [Dia 18/07/2026:](#dia-18072026)
+        - [Dia 24/07/2026:](#dia-24072026)
+        - [Dia 25/07/2026:](#dia-25072026)
     - [Prestadora de serviços](#prestadora-de-servi%C3%A7os)
         - [Identificação](#identifica%C3%A7%C3%A3o)
         - [Horas e custos](#horas-e-custos)
@@ -62,6 +64,27 @@
         - Redação da seção de documentação de release notes;
         - Correção do script de prunning de serviços em execução e ociosos do Docker;
 - Commits do período na branch `refactor/project-reorganization` Listagem no fork do [projeto](https://github.com/lwglg/telefonia-2/commits/refactor/project-reorganization/?author=lwglg&since=2026-07-18&until=2026-07-18).
+
+
+### Dia 24/07/2026:
+- Intervalos de tempo dedicaddos:
+    - **19:00 às 21:00**:
+        - Correção de apontamentos de pastas nas imagens dos serviço `backend` e `frontend`, de modo que as cópias fossem feitas de maneira correta, dados os novos escopos configurados;
+        - Estudo da estrutura de injeção de variáveis de ambiente na camada de configuração do `backend`;
+- Commits do período na branch `refactor/project-reorganization` Listagem no fork do [projeto](https://github.com/lwglg/telefonia-2/commits/refactor/project-reorganization/?author=lwglg&since=2026-07-24&until=2026-07-24).
+
+
+### Dia 25/07/2026:
+- Intervalos de tempo dedicaddos:
+    - **09:45 às 13:00**:
+        - Adaptação da build dos serviços `seq` e `rabbitmq`, declarando manifestos locais das imagens Docker;
+        - Correção de connection string nas variáveis de ambiente do `backend`;
+        - Descontinuação das declarações de serviços do Docker Compose na raíz do projeto, transferindo elas para `infra/docker/legacy`;
+        - Correções adicionais nos serviços `database` e `keycloak`;
+        - Teste exploratórios de execução de todos os serviços em `ìnfra/docker/develop`, de modo a medir o consumo de recursos (RAM e espaço físico);
+        - Estudo da documentação da API de Sandox do Sicredi () para testar a camada de integração da mesma com `backend`.
+- Commits do período na branch `refactor/project-reorganization` Listagem no fork do [projeto](https://github.com/lwglg/telefonia-2/commits/refactor/project-reorganization/?author=lwglg&since=2026-07-25&until=2026-07-25).
+
 
 ## Prestadora de serviços
 
