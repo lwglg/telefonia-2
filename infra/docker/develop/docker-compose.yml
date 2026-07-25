@@ -3,9 +3,9 @@ version: '3.9'
 name: luxus-connect
 
 services:
-  postgres:
-    container_name: postgres.connect.luxus
-    image: ${REGISTRY:-luxus/connect-postgres}:${PLATFORM:-linux}-${TAG:-latest}
+  database:
+    container_name: database.connect.luxus
+    image: ${REGISTRY:-luxus/connect-database}:${PLATFORM:-linux}-${TAG:-latest}
     build:
       context: ../../..
       dockerfile: ./infra/docker/develop/database/Dockerfile
@@ -14,12 +14,89 @@ services:
     env_file:
       - ./database/.database.env
     volumes:
-      - postgres-vol:/var/lib/pgsql/pgdata
+      - database-vol:/var/lib/pgsql/pgdata
       - '/etc/timezone:/etc/timezone:ro'
       - '/etc/localtime:/etc/localtime:ro'
     ports:
       - "5001:5001"
     restart: unless-stopped
+    networks:
+      - connect-luxus-default-net-dev
+
+  rabbitmq:
+    container_name: rabbitmq.connect.luxus
+    image: ${REGISTRY:-luxus/connect-rabbitmq}:${PLATFORM:-linux}-${TAG:-latest}
+    hostname: 'mabbit'
+    build:
+      context: ../../..
+      dockerfile: ./infra/docker/develop/rabbitmq/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./rabbitmq/.rabbitmq.env
+    ports:
+      - "5672:5672"
+      - "5671:5671"
+      - "15672:15672"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+      - rabbitmq-logs:/var/log/rabbitmq
+      - rabbitmq-mnesia:/var/lib/rabbitmq/mnesia/
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "-q", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - connect-luxus-default-net-dev
+
+  seq:
+    image: ${REGISTRY:-luxus/connect-seq}:${PLATFORM:-linux}-${TAG:-latest}
+    container_name: seq.connect.luxus
+    build:
+      context: ../../..
+      dockerfile: ./infra/docker/develop/seq/Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./seq/.seq.env
+    ports:
+      - "81:80"
+      - "5341:5341"
+    volumes:
+      - seq-data:/var/lib/seq/data/
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+    networks:
+      - connect-luxus-default-net-dev
+
+  backend:
+    image: ${REGISTRY:-luxus/connect-backend}:${PLATFORM:-linux}-${TAG:-latest}
+    container_name: backend.connect.luxus
+    restart: always
+    build:
+      context: ../../..
+      dockerfile: ./infra/docker/develop/backend/Dockerfile
+    env_file:
+      - ./backend/.backend.env
+    ports:
+      - '8002:80'
+    depends_on:
+      - database
+    networks:
+      - connect-luxus-default-net-dev
+
+  frontend:
+    image: ${REGISTRY:-luxus/connect-frontend}:${PLATFORM:-linux}-${TAG:-latest}
+    container_name: frontend.connect.luxus
+    build:
+      context: ../../..
+      dockerfile: ./infra/docker/develop/frontend/Dockerfile
+    env_file:
+      - ./frontend/.frontend.env
+    depends_on:
+      - backend
     networks:
       - connect-luxus-default-net-dev
 
@@ -30,81 +107,18 @@ services:
     build:
       context: ../../..
       dockerfile: ./infra/docker/develop/keycloak/Dockerfile
-    command: [
-      "start",
-      "--optimized",
-      "--import-realm",
-      "--spi-theme-static-max-age=-1",
-      "--spi-theme-cache-themes=false",
-      "--spi-theme-cache-templates=false"
-    ]
+    command: [ "start", "--optimized", "--import-realm", "--spi-theme-static-max-age=-1", "--spi-theme-cache-themes=false", "--spi-theme-cache-templates=false" ]
     env_file:
       - ./keycloak/.keycloak.env
-    depends_on:
-      - postgres
     volumes:
       - keycloak-data:/opt/keycloak/data
-      - ../../../resources/theme/:/opt/keycloak/themes/
+      - ../../../resources/theme/:/opt/keycloak/themes
       - ./keycloak/data/luxus-realm.json:/opt/keycloak/data/import/luxus-realm.json:ro
     ports:
       - "8081:8080"
       - "8443:8443"
-    networks:
-      - connect-luxus-default-net-dev
-
-  rabbitmq:
-    hostname: 'mabbit'
-    image: rabbitmq:management
-    container_name: rabbitmq.connect.luxus
-    ports:
-      - 5672:5672
-      - 15672:15672
-    env_file:
-      - ./rabbitmq/.rabbitmq.env
-    volumes:
-      - rabbitmq-data:/var/lib/rabbitmq/
-      - rabbitmq-mnesia:/var/lib/rabbitmq/mnesia/
-    networks:
-      - connect-luxus-default-net-dev
-
-
-  seq:
-    image: datalust/seq:latest
-    container_name: seq.connect.luxus
-    ports:
-      - 81:80
-      - 5341:5341
-    env_file:
-      - ./seq/.seq.env
-    volumes:
-      - seq-data:/var/lib/seq/data/
-    networks:
-      - connect-luxus-default-net-dev
-
-
-  connect-api:
-    image: ${REGISTRY:-luxus/connect-api}:${PLATFORM:-linux}-${TAG:-latest}
-    container_name: api.connect.luxus
-    restart: always
-    build:
-      context: ../../..
-      dockerfile: ./infra/docker/develop/backend/Dockerfile
-    env_file:
-      - ./backend/.backend.env
-    ports:
-      - '8002:80'
-    networks:
-      - connect-luxus-default-net-dev
-
-
-  connect-web:
-    image: ${WEB_REGISTRY:-luxus/connect-web}:${PLATFORM:-linux}-${TAG:-latest}
-    container_name: web-dev.connect.luxus
-    build:
-      context: ../../..
-      dockerfile: ./infra/docker/develop/frontend/Dockerfile
-    env_file:
-      - ./frontend/.frontend.env
+    depends_on:
+      - database
     networks:
       - connect-luxus-default-net-dev
 
@@ -113,8 +127,8 @@ networks:
     driver: bridge
 
 volumes:
-  postgres-vol:
-    name: connect.luxus.postgres-vol
+  database-vol:
+    name: connect.luxus.database-vol
   seq-data:
     name: connect.luxus.seq-vol
   keycloak-data:
@@ -123,5 +137,5 @@ volumes:
     name: connect.luxus.rabbitmq-data-vol
   rabbitmq-mnesia:
     name: connect.luxus.rabbitmq-mnesia-vol
-  web_dev_node_modules:
-    name: connect.luxus.web-dev-node-modules
+  rabbitmq-logs:
+    name: connect.luxus.rabbitmq-logs
