@@ -68,7 +68,7 @@ define HEADER
   _                       ___                      _     _    __  __      _        __ _ _     
  | |  _  ___ ___  _ ___  / __|___ _ _  _ _  ___ __| |_  | |  |  \/  |__ _| |_____ / _(_) |___ 
  | |_| || \ \ / || (_-< | (__/ _ \ ' \| ' \/ -_) _|  _| | |  | |\/| / _` | / / -_)  _| | / -_)
- |____\_,_/_\_\\_,_/__/  \___\___/_||_|_||_\___\__|\__| | |  |_|  |_\__,_|_\_\___|_| |_|_\___|
+ |____\_,_/_\_\\_,_/___/  \___\___/_||_|_||_\___\__|\__| | |  |_|  |_\__,_|_\_\___|_| |_|_\___|
                                                         |_|
 +---------------------------------------------------------------------------------------------+
 endef
@@ -134,5 +134,5 @@ imganalysisui: ## Executa a análise de uma imagem Docker, em modo UI, dado uma 
 imganalysisci: ## Executa a análise de uma imagem Docker, em modo CI, dado uma img=<imagem Docker>
 	@./scripts/sh/docker-analysis.sh ci $(img)
 
-topology: ## Gera um diagrama dos serviços listados no arquivo YML do Docker Compose
-	@./scripts/sh/generate-topology.sh topology $(env)
+topology: ## Gera um diagrama dos serviços listados no arquivo YML do Docker Compose, dado uma dir=<horizontal> direção e um env=<dev | prod> ambiente suportados
+	@./scripts/sh/generate-topology.sh topology $(dir) $(env)
