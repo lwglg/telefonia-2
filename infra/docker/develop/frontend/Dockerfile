@@ -28,8 +28,8 @@ FROM nginx:1.27-alpine AS final
 RUN apk add --no-cache gettext
 
 COPY --from=build /frontend/dist /usr/share/nginx/html
-COPY ./infra/docker/develop/nginx.conf.template /etc/nginx/conf.d/default.conf.template
-COPY ./infra/docker/develop/docker-entrypoint.sh /docker-entrypoint.sh
+COPY ./infra/docker/develop/frontend/nginx.conf.template /etc/nginx/conf.d/default.conf.template
+COPY ./infra/docker/develop/frontend/docker-entrypoint.sh /docker-entrypoint.sh
 
 RUN chmod +x /docker-entrypoint.sh
 
